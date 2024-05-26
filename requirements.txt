@@ -1,0 +1,16 @@
+instructions to run:
+1) download the following pip installs:
+pip install asgiref
+pip install Django
+pip install django-widget-tweaks
+pip install pytz
+pip install sqlparse
+
+2) make database migration(run the below in terminal)
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+
+after the last line you'll get a live link, which will direct you to the project.
+
+sugondeeznats
