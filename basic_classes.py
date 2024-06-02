@@ -1,5 +1,5 @@
 from datetime import date
-import json
+import pickle
 
 
 # ClassroomInteraction is not implemented yet!
@@ -25,7 +25,7 @@ class Database:
         :param student:
         :return:
         """
-        self.__students_table[student.username] = {"password": student.__password, "student": student}
+        self.__students_table[student.username] = {"password": student.getpassword(), "student": student}
         self.__batches_table[student.batch.name].add_student(student)
 
     def add_teacher(self, teacher):
@@ -34,7 +34,7 @@ class Database:
         :param teacher: Teacher object
         :return:
         """
-        self.__teachers_table[teacher.username] = {"password": teacher.__password, "teacher": teacher}
+        self.__teachers_table[teacher.username] = {"password": teacher.getpassword, "teacher": teacher}
 
     def add_batch(self, batch):
         """
@@ -43,6 +43,30 @@ class Database:
         :return:
         """
         self.__batches_table[batch.name] = batch
+
+    def get_batch(self, batch_name: str):
+        """
+        Get the batch object from the database.
+        :param batch_name: Batch name
+        :return: Batch object
+        """
+        return self.__batches_table[batch_name]
+
+    def get_student(self, student_username: str):
+        """
+        Get the student object from the database.
+        :param student_username: Student username
+        :return: Student object
+        """
+        return self.__students_table[student_username]["student"]
+
+    def get_teacher(self, teacher_username: str):
+        """
+        Get the teacher object from the database.
+        :param teacher_username: Teacher username
+        :return: Teacher object
+        """
+        return self.__teachers_table[teacher_username]["teacher"]
 
     def update_student(self, student_username: str, password=None, first_name=None, last_name=None):
         """
@@ -76,23 +100,44 @@ class Database:
         if last_name:
             self.__teachers_table[teacher_username]["teacher"].last_name = last_name
 
+    def update_batch(self, batch_name: str, students=None, subjects=None):
+        """
+        Update the batch details in the database.
+        :param batch_name: Batch name
+        :param students: List of students in the batch (Optional)
+        :param subjects: List of subjects in the batch (Optional)
+        :return:
+        """
+        if students:
+            self.__batches_table[batch_name].students = students
+        if subjects:
+            self.__batches_table[batch_name].subjects = subjects
+
     def save(self):
         # Save the database to a json file
-        with open("database.json", "w") as f:
-            json.dump(self.__dict__, f)
+        with open("database.bin", "wb") as f:
+            pickle.dump([self.__students_table, self.__teachers_table, self.__batches_table], f)
 
     def load(self) -> bool:
         # Load the database from a json file
         try:
-            with open("database.json", "r") as f:
-                data = json.load(f)
-                self.__dict__.update(data)
+            with open("database.bin", "rb") as f:
+                data = pickle.load(f)
+                self.__students_table = data[0]
+                self.__teachers_table = data[1]
+                self.__batches_table = data[2]
 
         except FileNotFoundError:
             print("...Initializing a new database.")
             return False
         else:
             return True
+
+    def reset(self):
+        # Remove the json file
+        import os
+        if os.path.exists("database.bin"):
+            os.remove("database.bin")
 
 
 class Subject:
@@ -182,15 +227,19 @@ class Student:
 
         # subjects_enrolled = List[Subject]
         self.subjects_enrolled = subjects_enrolled if subjects_enrolled else batch.subjects
-
+        print(self.subjects_enrolled)
         # attendance = Dict[Subject:Dict[Date: bool]]
-        self.__attendance = attendance if attendance else dict.fromkeys(subjects_enrolled, None)
+        self.__attendance = attendance if attendance else dict.fromkeys(self.subjects_enrolled)
 
         # assignments = Dict[Subject:List[Assignment]]
-        self.__assignments = dict.fromkeys(subjects_enrolled)
+        self.__assignments = dict.fromkeys(self.subjects_enrolled)
 
         # marks = Dict[Subject:Dict[Test: float]]
-        self.__marks = dict.fromkeys(subjects_enrolled, {})
+        self.__marks = dict.fromkeys(self.subjects_enrolled, {})
+
+    def getpassword(self):
+        """A Bad Practice to expose the password. Use this method only for time being."""
+        return self.__password
 
     def view_marks(self):
         return self.__marks  # Use the frontend to display the marks as a table
@@ -228,6 +277,10 @@ class Teacher:
         self.password = password
         self.first_name = first_name
         self.last_name = last_name
+
+    def getpassword(self):
+        """A Bad Practice to expose the password. Use this method only for time being."""
+        return self.password
 
     @staticmethod
     def assign_assignment_to_class(batch: Batch, subject: Subject, assignment: Assignment):

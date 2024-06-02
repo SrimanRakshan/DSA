@@ -9,6 +9,7 @@ class Student {
     # marks: Dict[Subject : Dict[Test : float]]
     # attendance: Dict[Subject : float]
     # assignments: Dict[Subject : list[Assignment]]
+    + getpassword()
     + view_marks()
     + view_attendance()
     + view_assignments()
@@ -68,6 +69,7 @@ class Database {
     + add_batch(batch: Batch)
     + update_student(student_username: int, new_student_data)
     + update_teacher(teacher_username: int, new_teacher_data)
+    + update_batch(batch_name: str, Students : list[Student], Subjects : set[Subject])
     + save()
     + load()
 }
