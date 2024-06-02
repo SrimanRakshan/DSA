@@ -1,7 +1,6 @@
 from datetime import date
 import json
 
-
 # Design a Class Architecture based on /umldiagram.puml
 
 class Database:
