@@ -5,18 +5,18 @@ from datetime import date
 
 class Database:
     def __init__(self):
-        self.students_table = []
-        self.teachers_table = []
-        self.subjects_table = []
-        self.batches_table = []
+        self.teachers_table = {}
+        self.students_table = {}
         self.assignments_table = []
         self.tests_table = []
+        self.subjects_table = []
+        self.batches_table = []
 
     def add_student(self, student):
-        self.students_table.append(student)
+        self.students_table[student.username] = {"password": student.password, "student": student}
 
     def add_teacher(self, teacher):
-        self.teachers_table.append(teacher)
+        self.teachers_table[teacher.username] = {"password": teacher.password, "teacher": teacher}
 
     def add_subject(self, subject):
         self.subjects_table.append(subject)
@@ -31,7 +31,7 @@ class Database:
         self.tests_table.append(test)
 
     # Update methods for each table would be implemented here
-    def update_student(self, student_id: int):
+    def update_student(self, student_username: str):
         pass
 
     def update_teacher(self, teacher_id: int):
@@ -85,6 +85,27 @@ class Test:
         pass
 
 
+class Teacher:
+    def __init__(self, id: int, username: str, password: str, name: str):
+        # self.id = id
+        self.username = username
+        self.password = password
+        self.name = name
+        self.assigned_classes = []
+
+    def assign_assignment_to_class(self, batch_id, assignment):
+        # Logic to assign assignment to class
+        pass
+
+    def update_student_marks(self, student_id, marks):
+        # Logic to update student marks
+        pass
+
+    def access_test_results(self, test: Test):
+        # Logic to access test results
+        pass
+
+
 class Student:
     def __init__(self, id: int, username: str, password: str, name: str, subjects_enrolled: list[Subject]):
         self.id = id
@@ -114,29 +135,4 @@ class Student:
 
     def access_test_results(self, test: Test):
         # Logic to access test results
-        pass
-
-
-class Teacher:
-    def __init__(self, id: int, username: str, password: str, name: str):
-        self.id = id
-        self.username = username
-        self.password = password
-        self.name = name
-        self.assigned_classes = []
-
-    def login(self):
-        # Login logic here
-        pass
-
-    def edit_student_credentials(self, student_id, new_username, new_password):
-        # Logic to edit student credentials
-        pass
-
-    def assign_assignment_to_class(self, batch_id, assignment):
-        # Logic to assign assignment to class
-        pass
-
-    def update_student_marks(self, student_id, marks):
-        # Logic to update student marks
         pass

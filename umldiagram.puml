@@ -14,13 +14,10 @@ class Student {
 }
 
 class Teacher {
-    - id: int
     - username: str
     - password: str
     - name: str
     - assigned_classes: set[Batch]
-    + login()
-    + edit_student_credentials(student_id: int, new_username: str, new_password: str)
     + assign_assignment_to_class(batch_id: int, assignment: Assignment)
     + update_student_marks(student_id: int, test: Test, marks: list[int])
     + access_test_results(test: Test)
