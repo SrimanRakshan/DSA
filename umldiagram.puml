@@ -6,7 +6,6 @@ class Student {
     - lastname : str
     - attendance: Dict[Subject : float]
     - assignments: Dict[Subject : list[Assignment]]
-    + login()
     + view_marks()
     + view_attendance()
     + submit_assignment(assignment: Assignment)
