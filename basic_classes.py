@@ -11,7 +11,8 @@ class Database:
     Batches must be created before students are added to the database.
     """
 
-    def __init__(self):
+    def __init__(self, save_file='database.bin'):
+        self.save_file = save_file
         if not self.load():
             self.__teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher]]
             self.__students_table = {}  # Dict[username: Dict[password: str, student: Student]]
@@ -115,13 +116,13 @@ class Database:
 
     def save(self):
         # Save the database to a json file
-        with open("database.bin", "wb") as f:
+        with open(self.save_file, "wb") as f:
             pickle.dump([self.__students_table, self.__teachers_table, self.__batches_table], f)
 
     def load(self) -> bool:
         # Load the database from a json file
         try:
-            with open("database.bin", "rb") as f:
+            with open(self.save_file, "rb") as f:
                 data = pickle.load(f)
                 self.__students_table = data[0]
                 self.__teachers_table = data[1]
@@ -136,8 +137,8 @@ class Database:
     def reset(self):
         # Remove the json file
         import os
-        if os.path.exists("database.bin"):
-            os.remove("database.bin")
+        if os.path.exists(self.save_file):
+            os.remove(self.save_file)
 
 
 class Subject:

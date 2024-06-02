@@ -67,11 +67,15 @@ class Database {
     + add_student(student: Student)
     + add_teacher(teacher: Teacher)
     + add_batch(batch: Batch)
+    + get_student(student_username: str)
+    + get_teacher(teacher_username: str)
+    + get_batch(batch_name: str)
     + update_student(student_username: int, new_student_data)
     + update_teacher(teacher_username: int, new_teacher_data)
     + update_batch(batch_name: str, Students : list[Student], Subjects : set[Subject])
     + save()
     + load()
+    + reset()
 }
 
 Student "1" --> "0..*" Teacher : enrolled_in
