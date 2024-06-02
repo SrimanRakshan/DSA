@@ -1,0 +1,95 @@
+@startuml
+class Student {
+    - id: int
+    - username: str
+    - password: str
+    - name: str
+    - attendance: Dict[Subject, float]
+    - subjects_enrolled: set[Subject]
+    + login()
+    + view_marks()
+    + view_attendance()
+    + submit_assignment(assignment: Assignment)
+    + access_test_results(test: Test)
+}
+
+class Teacher {
+    - id: int
+    - username: str
+    - password: str
+    - name: str
+    - assigned_classes: set[Batch]
+    + login()
+    + edit_student_credentials(student_id: int, new_username: str, new_password: str)
+    + assign_assignment_to_class(batch_id: int, assignment: Assignment)
+    + update_student_marks(student_id: int, test: Test, marks: list[int])
+    + access_test_results(test: Test)
+}
+
+class Subject {
+    - id: int
+    - name: str
+}
+
+class Batch {
+    - id: int
+    - name: str
+    - section: str
+    - students: list[Student]
+    - subjects: set[Subject]
+    + add_student(student: Student)
+    + add_subject(subject: Subject)
+}
+
+class Assignment {
+    - id: int
+    - name: str
+    - due_date: date
+    - subject: Subject
+    + assign_to_batch(batch: Batch)
+}
+
+class Test {
+    - id: int
+    - subject: Subject
+    - marks: dict[Student, int]
+}
+
+class ClassroomInteraction {
+    + update_student_marks(student_id: int, test: Test, marks: list[int])
+    + assign_assignment_to_student(student_id: int, assignment: Assignment)
+    + view_assignments(student_id: int)
+}
+
+class Database {
+    - students_table: table
+    - teachers_table: table
+    - subjects_table: table
+    - batches_table: table
+    - assignments_table: table
+    - tests_table: table
+    + add_student(student: Student)
+    + add_teacher(teacher: Teacher)
+    + add_subject(subject: Subject)
+    + add_batch(batch: Batch)
+    + add_assignment(assignment: Assignment)
+    + add_test(test: Test)
+    + update_student(student_id: int, new_student_data)
+    + update_teacher(teacher_id: int, new_teacher_data)
+    + update_batch(batch_id: int, new_batch_data)
+}
+
+Student "1" --> "0..*" Teacher : enrolled_in
+Student "1" --> "1" Database : uses
+Teacher "1" --> "1" Database : uses
+Student "1" --> "*" Subject : enrolled_in
+Batch "*" --> "1" Teacher : taught_by
+Batch "*" --> "*" Student : has_students
+Batch "*" --> "*" Subject : subjects
+Assignment "1" --> "1" Subject : belongs_to
+Assignment "1" --> "1" Batch : assigned_to
+Test "1" --> "1" Subject : linked_via
+Test "*" --> "*" Student : marks_of
+ClassroomInteraction "*" --> "*" Teacher : interacts_with <<updates_credentials>>
+ClassroomInteraction "*" --> "*" Student : interacts_with
+@enduml
