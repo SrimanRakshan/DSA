@@ -6,26 +6,53 @@ import json
 # Design a Class Architecture based on /umldiagram.puml
 
 class Database:
+    """
+    Database class to store all the data of the school.
+    Batches must be created before students are added to the database.
+    """
+
     def __init__(self):
         if not self.load():
-            self.teachers_table = {}
+            self.teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher]]
             self.students_table = {}
             self.batches_table = {}
-            self.subjects_table = []
+
+            self.save()  # Save the database to a json file
 
     def add_student(self, student):
+        """
+        Add a student to the database. Also add the student to the batch. (Assuming the batch is already present)
+        :param student:
+        :return:
+        """
         self.students_table[student.username] = {"password": student.password, "student": student}
+        self.batches_table[student.batch.name].add_student(student)
 
     def add_teacher(self, teacher):
+        """
+        Add a teacher to the database.
+        :param teacher: Teacher object
+        :return:
+        """
         self.teachers_table[teacher.username] = {"password": teacher.password, "teacher": teacher}
 
-    def add_subject(self, subject):
-        self.subjects_table.append(subject)
-
     def add_batch(self, batch):
+        """
+        Add a batch to the database.
+        :param batch: Batch object
+        :return:
+        """
         self.batches_table[batch.name] = batch
 
     def update_student(self, student_username: str, password=None, first_name=None, last_name=None):
+        """
+        Update the student details in the database.
+        :param student_username: Student username
+        :param password: Password of the student (Optional)
+        :param first_name: First name of the student (Optional)
+        :param last_name: Last name of the student (Optional)
+        :return:
+        """
         if password:
             self.students_table[student_username]["password"] = password
         if first_name:
@@ -34,6 +61,14 @@ class Database:
             self.students_table[student_username]["student"].last_name = last_name
 
     def update_teacher(self, teacher_username: str, password=None, first_name=None, last_name=None):
+        """
+        Update the teacher details in the database.
+        :param teacher_username: Teacher username
+        :param password: Password of the teacher (Optional)
+        :param first_name: First name of the teacher (Optional)
+        :param last_name: Last name of the teacher (Optional)
+        :return:
+        """
         if password:
             self.teachers_table[teacher_username]["password"] = password
         if first_name:
@@ -103,26 +138,35 @@ class Assignment:
 
 
 class Test:
-    def __init__(self, id: int, name: str, subject: Subject, date: date):
-        self.id = id
+    def __init__(self, name: str, subject: Subject):
         self.name = name
         self.subject = subject
-        self.date = date
+        self.mark = None
 
     def assign_to_batch(self, batch: Batch):
-        pass
+        """
+        Assign the test to all students in the batch.
+        :param batch: Batch to which the test is assigned
+        :return:
+        """
+        for student in batch.students:
+            student.tests.append(self.__copy__())
+
+    def __copy__(self):
+        return Test(self.name, self.subject)
 
 
 class Student:
     def __init__(self, username: str, password: str, first_name: str, last_name: str, batch: Batch,
+                 attendance: dict = None,
                  subjects_enrolled: list[Subject] = None, marks: dict[Subject, int] = None):
         """
-
         :param username: Username of the student
         :param password: Password of the student
         :param first_name: First name of the student
         :param last_name: Last name of the student
         :param batch: Batch of the student
+        :param attendance: (Optional) Dictionary of attendance for each subject, If not provided, initializes to None
         :param subjects_enrolled: (Optional) List of subjects enrolled, If not provided, inherits from the batch
         :param marks: (Optional) Dictionary of marks for each subject, If not provided, initializes to None
         """
@@ -132,10 +176,17 @@ class Student:
         self.last_name = last_name
         self.batch = batch
 
+        # subjects_enrolled = List[Subject]
         self.subjects_enrolled = subjects_enrolled if subjects_enrolled else batch.subjects
-        self.attendance = dict.fromkeys(subjects_enrolled, None)  # Mapping of subject to attendance percentage
+
+        # attendance = Dict[Subject:Dict[Date: bool]]
+        self.attendance = attendance if attendance else dict.fromkeys(subjects_enrolled, None)
+
+        # assignments = Dict[Subject:List[Assignment]]
         self.assignments = dict.fromkeys(subjects_enrolled)
-        self.marks = dict.fromkeys(subjects_enrolled)  # Mapping of subject to marks
+
+        # marks = Dict[Subject:Dict[Test: float]]
+        self.marks = dict.fromkeys(subjects_enrolled, {})
 
     def view_marks(self):
         return self.marks  # Use the frontend to display the marks as a table
@@ -145,33 +196,87 @@ class Student:
 
     @staticmethod
     def submit_assignment(assignment: Assignment):
+        """
+        Submit the assignment. (Get the assignment object from the student's list of assignments)
+        :param assignment:
+        :return:
+        """
         assignment.status = "Submitted"
 
     def view_attendance(self):
         return self.attendance
 
+    def access_all_tests(self, subject: Subject):
+        return self.marks[subject]  # Return {Test: marks} for the subject
+
     def access_test_results(self, test: Test):
-        # Logic to access test results
-        return
+        return self.marks[test.subject][test]
 
 
 class Teacher:
+    """
+    Teacher class to store information about the teacher.
+    This teacher class is a utility class (has only static methods).
+    """
+
     def __init__(self, username: str, password: str, first_name: str, last_name: str):
         self.username = username
         self.password = password
         self.first_name = first_name
         self.last_name = last_name
-        # self.assigned_classes = []  Unused for now!
 
     @staticmethod
-    def assign_assignment_to_class(batch, subject, assignment):
+    def assign_assignment_to_class(batch: Batch, subject: Subject, assignment: Assignment):
+        """
+        Assign an assignment to a batch.
+        :param batch: Batch to which the assignment is assigned
+        :param subject: Subject to which the assignment belongs
+        :param assignment: Assignment object to be assigned (Provide an Assignment object)
+        :return:
+        """
         assignment.assign_to_batch(subject, batch)
 
     @staticmethod
-    def update_student_marks(self, subject: Subject, student: Student, marks):
-        student.marks[subject] = marks
+    def assign_test_to_class(batch: Batch, test: Test):
+        """
+        Assign a test to a batch. (Update Marks after assigning the test)
+        :param batch: Batch to which the test is assigned
+        :param test: Test object to be assigned (Provide a Test object)
+        :return:
+        """
+        test.assign_to_batch(batch)
 
     @staticmethod
-    def access_test_results(self, test: Test):
-        # Logic to access test results
-        pass
+    def update_student_attendance(student: Student, subject: Subject, date: date, present: bool):
+        """
+        Update the attendance of a student for a particular subject.
+        :param student: Student whose attendance is updated
+        :param subject: Subject for which the attendance is updated
+        :param date: Date of the attendance
+        :param present: Boolean value indicating whether the student is present or not
+        :return:
+        """
+        student.attendance[subject][date] = present
+
+    @staticmethod
+    def update_student_marks(student: Student, test: Test):
+        """
+        Update the marks of a student for a particular subject. (Assign test before updating marks)
+        :param test: Test for which the marks are updated (Provide a Test object)
+        :param student: Student whose marks are updated
+        :return:
+        """
+        student.marks[test.subject][test] = test.mark
+
+    @staticmethod
+    def access_test_results(batch: Batch, test: Test):
+        """
+        Access the test results of all students in a batch.
+        :param batch: Batch to which the test is assigned
+        :param test: Test for which the results are accessed (Provide a Test object)
+        :return:
+        """
+        marks = {}
+        for student in batch.students:
+            marks[student.first_name + ' ' + student.last_name] = student.marks[test.subject][test]
+        return marks

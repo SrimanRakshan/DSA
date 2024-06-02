@@ -4,7 +4,7 @@ class Student {
     - password: str
     - firstname : str
     - lastname : str
-    - marks: Dict[Subject : float]
+    - marks: Dict[Subject : Dict[Test : float]]
     - attendance: Dict[Subject : float]
     - assignments: Dict[Subject : list[Assignment]]
     + view_marks()
@@ -19,9 +19,9 @@ class Teacher {
     - password: str
     + firstname: str
     + lastname: str
-    + assign_assignment_to_class(subject,batch: Batch, assignment: Assignment)
-    + update_student_marks(student_username: int, test: Test, marks: list[int])
-    + access_test_results(test: Test)
+    + assign_assignment_to_class(batch: Batch, subject: Subject, assignment: Assignment)
+    + update_student_marks(student: Student, test: Test)
+    + access_test_results(batch: Batch, test: Test)
 }
 
 class Subject {
