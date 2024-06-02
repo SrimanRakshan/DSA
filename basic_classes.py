@@ -2,8 +2,8 @@ from datetime import date
 import json
 
 
-# Test Class is not implemented!
-# Design a Class Architecture based on /umldiagram.puml
+# ClassroomInteraction is not implemented yet!
+# Design a Class Architecture based on /uml_diagram.puml
 
 class Database:
     """
@@ -13,9 +13,9 @@ class Database:
 
     def __init__(self):
         if not self.load():
-            self.teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher]]
-            self.students_table = {}
-            self.batches_table = {}
+            self.__teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher]]
+            self.__students_table = {}  # Dict[username: Dict[password: str, student: Student]]
+            self.__batches_table = {}  # Dict[batch_name: Batch]
 
             self.save()  # Save the database to a json file
 
@@ -25,8 +25,8 @@ class Database:
         :param student:
         :return:
         """
-        self.students_table[student.username] = {"password": student.password, "student": student}
-        self.batches_table[student.batch.name].add_student(student)
+        self.__students_table[student.username] = {"password": student.__password, "student": student}
+        self.__batches_table[student.batch.name].add_student(student)
 
     def add_teacher(self, teacher):
         """
@@ -34,7 +34,7 @@ class Database:
         :param teacher: Teacher object
         :return:
         """
-        self.teachers_table[teacher.username] = {"password": teacher.password, "teacher": teacher}
+        self.__teachers_table[teacher.username] = {"password": teacher.__password, "teacher": teacher}
 
     def add_batch(self, batch):
         """
@@ -42,7 +42,7 @@ class Database:
         :param batch: Batch object
         :return:
         """
-        self.batches_table[batch.name] = batch
+        self.__batches_table[batch.name] = batch
 
     def update_student(self, student_username: str, password=None, first_name=None, last_name=None):
         """
@@ -54,11 +54,11 @@ class Database:
         :return:
         """
         if password:
-            self.students_table[student_username]["password"] = password
+            self.__students_table[student_username]["password"] = password
         if first_name:
-            self.students_table[student_username]["student"].first_name = first_name
+            self.__students_table[student_username]["student"].first_name = first_name
         if last_name:
-            self.students_table[student_username]["student"].last_name = last_name
+            self.__students_table[student_username]["student"].last_name = last_name
 
     def update_teacher(self, teacher_username: str, password=None, first_name=None, last_name=None):
         """
@@ -70,11 +70,11 @@ class Database:
         :return:
         """
         if password:
-            self.teachers_table[teacher_username]["password"] = password
+            self.__teachers_table[teacher_username]["password"] = password
         if first_name:
-            self.teachers_table[teacher_username]["teacher"].first_name = first_name
+            self.__teachers_table[teacher_username]["teacher"].first_name = first_name
         if last_name:
-            self.teachers_table[teacher_username]["teacher"].last_name = last_name
+            self.__teachers_table[teacher_username]["teacher"].last_name = last_name
 
     def save(self):
         # Save the database to a json file
@@ -89,7 +89,7 @@ class Database:
                 self.__dict__.update(data)
 
         except FileNotFoundError:
-            print("Database file not found")
+            print("...Initializing a new database.")
             return False
         else:
             return True
@@ -101,9 +101,8 @@ class Subject:
 
 
 class Batch:
-    def __init__(self, name: str, section: str):
+    def __init__(self, name: str):
         self.name = name
-        self.section = section
         self.students = []  # List of students enrolled in the batch
         self.subjects = []  # List of subjects taught in the batch
 
@@ -120,7 +119,7 @@ class Assignment:
         self.name = name
         self.due_date = due_date
         self.subject = subject
-        self.status = "Pending"
+        self._submitted = False
 
     def assign_to_batch(self, subject: Subject, batch: Batch):
         """
@@ -133,6 +132,9 @@ class Assignment:
             student.assigments[
                 subject].append(self.__copy__())  # Create a copy of the assignment and assign it to the student
 
+    def submit(self):
+        self._submitted = True
+
     def __copy__(self):
         return Assignment(self.name, self.subject, self.due_date)
 
@@ -141,7 +143,7 @@ class Test:
     def __init__(self, name: str, subject: Subject):
         self.name = name
         self.subject = subject
-        self.mark = None
+        self.__mark = None
 
     def assign_to_batch(self, batch: Batch):
         """
@@ -152,6 +154,9 @@ class Test:
         for student in batch.students:
             student.tests.append(self.__copy__())
 
+    def getmark(self):
+        return self.__mark
+
     def __copy__(self):
         return Test(self.name, self.subject)
 
@@ -159,7 +164,7 @@ class Test:
 class Student:
     def __init__(self, username: str, password: str, first_name: str, last_name: str, batch: Batch,
                  attendance: dict = None,
-                 subjects_enrolled: list[Subject] = None, marks: dict[Subject, int] = None):
+                 subjects_enrolled: list[Subject] = None):
         """
         :param username: Username of the student
         :param password: Password of the student
@@ -168,10 +173,9 @@ class Student:
         :param batch: Batch of the student
         :param attendance: (Optional) Dictionary of attendance for each subject, If not provided, initializes to None
         :param subjects_enrolled: (Optional) List of subjects enrolled, If not provided, inherits from the batch
-        :param marks: (Optional) Dictionary of marks for each subject, If not provided, initializes to None
         """
         self.username = username
-        self.password = password
+        self.__password = password
         self.first_name = first_name
         self.last_name = last_name
         self.batch = batch
@@ -180,19 +184,28 @@ class Student:
         self.subjects_enrolled = subjects_enrolled if subjects_enrolled else batch.subjects
 
         # attendance = Dict[Subject:Dict[Date: bool]]
-        self.attendance = attendance if attendance else dict.fromkeys(subjects_enrolled, None)
+        self.__attendance = attendance if attendance else dict.fromkeys(subjects_enrolled, None)
 
         # assignments = Dict[Subject:List[Assignment]]
-        self.assignments = dict.fromkeys(subjects_enrolled)
+        self.__assignments = dict.fromkeys(subjects_enrolled)
 
         # marks = Dict[Subject:Dict[Test: float]]
-        self.marks = dict.fromkeys(subjects_enrolled, {})
+        self.__marks = dict.fromkeys(subjects_enrolled, {})
 
     def view_marks(self):
-        return self.marks  # Use the frontend to display the marks as a table
+        return self.__marks  # Use the frontend to display the marks as a table
 
     def view_assignments(self):
-        return self.assignments
+        return self.__assignments
+
+    def view_attendance(self):
+        return self.__attendance
+
+    def access_all_tests(self, subject: Subject):
+        return self.__marks[subject]  # Return {Test: marks} for the subject
+
+    def access_test_results(self, test: Test):
+        return self.view_marks()[test.subject][test]
 
     @staticmethod
     def submit_assignment(assignment: Assignment):
@@ -201,16 +214,7 @@ class Student:
         :param assignment:
         :return:
         """
-        assignment.status = "Submitted"
-
-    def view_attendance(self):
-        return self.attendance
-
-    def access_all_tests(self, subject: Subject):
-        return self.marks[subject]  # Return {Test: marks} for the subject
-
-    def access_test_results(self, test: Test):
-        return self.marks[test.subject][test]
+        assignment._submitted = True
 
 
 class Teacher:
@@ -256,7 +260,7 @@ class Teacher:
         :param present: Boolean value indicating whether the student is present or not
         :return:
         """
-        student.attendance[subject][date] = present
+        student.view_attendance()[subject][date] = present
 
     @staticmethod
     def update_student_marks(student: Student, test: Test):
@@ -266,7 +270,7 @@ class Teacher:
         :param student: Student whose marks are updated
         :return:
         """
-        student.marks[test.subject][test] = test.mark
+        student.view_marks()[test.subject][test] = test.getmark()
 
     @staticmethod
     def access_test_results(batch: Batch, test: Test):
@@ -278,5 +282,5 @@ class Teacher:
         """
         marks = {}
         for student in batch.students:
-            marks[student.first_name + ' ' + student.last_name] = student.marks[test.subject][test]
+            marks[student.first_name + ' ' + student.last_name] = student.__marks[test.subject][test]
         return marks

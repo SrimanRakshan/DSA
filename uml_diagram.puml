@@ -1,16 +1,19 @@
 @startuml
 class Student {
-    - username: str
+    + username: str
     - password: str
-    - firstname : str
-    - lastname : str
-    - marks: Dict[Subject : Dict[Test : float]]
-    - attendance: Dict[Subject : float]
-    - assignments: Dict[Subject : list[Assignment]]
+    + firstname : str
+    + lastname : str
+    + batch : Batch
+    + subjects_enrolled : List[Subject]
+    # marks: Dict[Subject : Dict[Test : float]]
+    # attendance: Dict[Subject : float]
+    # assignments: Dict[Subject : list[Assignment]]
     + view_marks()
     + view_attendance()
     + view_assignments()
     + submit_assignment(assignment: Assignment)
+    + access_all_tests(subject: Subject)
     + access_test_results(test: Test)
 }
 
@@ -25,27 +28,28 @@ class Teacher {
 }
 
 class Subject {
-    - name: str
+    + name: str
 }
 
 class Batch {
-    - name: str
-    - students: list[Student]
-    - subjects: set[Subject]
+    + name: str
+    + students: list[Student]
+    + subjects: set[Subject]
     + add_student(student: Student)
     + add_subject(subject: Subject)
 }
 
 class Assignment {
-    - name: str
-    - due_date: date
-    - subject: Subject
-    + assign_to_batch(batch: Batch)
+    + name: str
+    + due_date: date
+    + subject: Subject
+    + submitted : bool
+    + assign_to_batch(subject: Subject, batch: Batch)
 }
 
 class Test {
-    - name : str
-    - subject: Subject
+    + name : str
+    + subject: Subject
     - marks: dict[Student, int]
 }
 
@@ -56,20 +60,16 @@ class ClassroomInteraction {
 }
 
 class Database {
-    - students_table: Dict(password : str, student : Student)
-    - teachers_table: Dict(password : str, teacher : Teacher)
-    - subjects_table: table
-    - batches_table: table
+    - students_table: Dict[username: Dict[password: str, teacher: Teacher]]
+    - teachers_table: Dict[username: Dict[password: str, student: Student]]
+    - batches_table: Dict[batch_name: Batch]
     + add_student(student: Student)
     + add_teacher(teacher: Teacher)
-    + add_subject(subject: Subject)
     + add_batch(batch: Batch)
-    + add_assignment(assignment: Assignment)
-    + add_test(test: Test)
     + update_student(student_username: int, new_student_data)
     + update_teacher(teacher_username: int, new_teacher_data)
-    - save()
-    - load()
+    + save()
+    + load()
 }
 
 Student "1" --> "0..*" Teacher : enrolled_in

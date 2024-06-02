@@ -55,7 +55,7 @@ def admin_signup_view(request):
         form = forms.AdminSigupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
 
             my_admin_group = Group.objects.get_or_create(name='ADMIN')
@@ -74,7 +74,7 @@ def student_signup_view(request):
         form2 = forms.StudentExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
             f2 = form2.save(commit=False)
             f2.user = user
@@ -96,7 +96,7 @@ def teacher_signup_view(request):
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
             f2 = form2.save(commit=False)
             f2.user = user
@@ -196,12 +196,12 @@ def admin_add_teacher_view(request):
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2.status = True
+            f2._submitted = True
             f2.save()
 
             my_teacher_group = Group.objects.get_or_create(name='TEACHER')
@@ -229,7 +229,7 @@ def admin_approve_teacher_view(request):
 @user_passes_test(is_admin)
 def approve_teacher_view(request, pk):
     teacher = models.TeacherExtra.objects.get(id=pk)
-    teacher.status = True
+    teacher._submitted = True
     teacher.save()
     return redirect(reverse('admin-approve-teacher'))
 
@@ -270,10 +270,10 @@ def update_teacher_view(request, pk):
         print(form1)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
             f2 = form2.save(commit=False)
-            f2.status = True
+            f2._submitted = True
             f2.save()
             return redirect('admin-view-teacher')
     return render(request, 'school/admin_update_teacher.html', context=mydict)
@@ -305,12 +305,12 @@ def admin_add_student_view(request):
         if form1.is_valid() and form2.is_valid():
             print("form is valid")
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2.status = True
+            f2._submitted = True
             f2.save()
 
             my_student_group = Group.objects.get_or_create(name='STUDENT')
@@ -362,10 +362,10 @@ def update_student_view(request, pk):
         print(form1)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.password)
+            user.set_password(user.__password)
             user.save()
             f2 = form2.save(commit=False)
-            f2.status = True
+            f2._submitted = True
             f2.save()
             return redirect('admin-view-student')
     return render(request, 'school/admin_update_student.html', context=mydict)
@@ -382,7 +382,7 @@ def admin_approve_student_view(request):
 @user_passes_test(is_admin)
 def approve_student_view(request, pk):
     students = models.StudentExtra.objects.get(id=pk)
-    students.status = True
+    students._submitted = True
     students.save()
     return redirect(reverse('admin-approve-student'))
 
