@@ -19,21 +19,33 @@ def home_view(request):
 # for showing signup/login button for admin
 def adminclick_view(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect('afterlogin')
+        if is_admin(request.user):
+            return HttpResponseRedirect('afterlogin')
+        else:
+            logout(request)
+            messages.error(request, "Invalid login credentials")
     return render(request, 'school/adminclick.html')
 
 
 # for showing signup/login button for teacher
 def teacherclick_view(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect('afterlogin')
+        if is_teacher(request.user):
+            return HttpResponseRedirect('afterlogin')
+        else:
+            logout(request)
+            messages.error(request, "Invalid login credentials")
     return render(request, 'school/teacherclick.html')
 
 
 # for showing signup/login button for student
 def studentclick_view(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect('afterlogin')
+        if is_student(request.user):
+            return HttpResponseRedirect('afterlogin')
+        else:
+            logout(request)
+            messages.error(request, "Invalid login credentials")
     return render(request, 'school/studentclick.html')
 
 
