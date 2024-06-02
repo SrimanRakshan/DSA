@@ -4,10 +4,12 @@ class Student {
     - password: str
     - firstname : str
     - lastname : str
+    - marks: Dict[Subject : float]
     - attendance: Dict[Subject : float]
     - assignments: Dict[Subject : list[Assignment]]
     + view_marks()
     + view_attendance()
+    + view_assignments()
     + submit_assignment(assignment: Assignment)
     + access_test_results(test: Test)
 }
@@ -17,7 +19,6 @@ class Teacher {
     - password: str
     + firstname: str
     + lastname: str
-    - assigned_classes: set[Batch]
     + assign_assignment_to_class(subject,batch: Batch, assignment: Assignment)
     + update_student_marks(student_username: int, test: Test, marks: list[int])
     + access_test_results(test: Test)
@@ -29,7 +30,6 @@ class Subject {
 
 class Batch {
     - name: str
-    - section: str
     - students: list[Student]
     - subjects: set[Subject]
     + add_student(student: Student)
@@ -60,8 +60,6 @@ class Database {
     - teachers_table: Dict(password : str, teacher : Teacher)
     - subjects_table: table
     - batches_table: table
-    - assignments_table: table
-    - tests_table: table
     + add_student(student: Student)
     + add_teacher(teacher: Teacher)
     + add_subject(subject: Subject)
@@ -70,7 +68,6 @@ class Database {
     + add_test(test: Test)
     + update_student(student_username: int, new_student_data)
     + update_teacher(teacher_username: int, new_teacher_data)
-    + update_batch(batch: str, new_batch_data)
     - save()
     - load()
 }
