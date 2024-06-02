@@ -3,6 +3,8 @@ from . import forms, models
 from django.db.models import Sum
 from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
+from django.contrib.auth import logout
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 from django.core.mail import send_mail
@@ -14,7 +16,7 @@ def home_view(request):
     return render(request, 'school/index.html')
 
 
-# for showing signup/login button for teacher
+# for showing signup/login button for admin
 def adminclick_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
@@ -125,7 +127,7 @@ def afterlogin_view(request):
             return render(request, 'school/student_wait_for_approval.html')
 
 
-# for dashboard of adminnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+# for dashboard of admin
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_dashboard_view(request):
@@ -164,7 +166,7 @@ def admin_dashboard_view(request):
     return render(request, 'school/admin_dashboard.html', context=mydict)
 
 
-# for teacher sectionnnnnnnn by adminnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+# for teacher section by admin
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_teacher_view(request):
@@ -272,7 +274,7 @@ def admin_view_teacher_salary_view(request):
     return render(request, 'school/admin_view_teacher_salary.html', {'teachers': teachers})
 
 
-# for student by adminnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+# for student by admin
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_student_view(request):
@@ -380,7 +382,7 @@ def admin_view_student_fee_view(request):
     return render(request, 'school/admin_view_student_fee.html', {'students': students})
 
 
-# attendance related viewwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+# attendance related view
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_attendance_view(request):
@@ -428,7 +430,7 @@ def admin_view_attendance_view(request, cl):
     return render(request, 'school/admin_view_attendance_ask_date.html', {'cl': cl, 'form': form})
 
 
-# fee related view by adminnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+# fee related view by admin
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_fee_view(request):
@@ -442,7 +444,7 @@ def admin_view_fee_view(request, cl):
     return render(request, 'school/admin_view_fee.html', {'feedetails': feedetails, 'cl': cl})
 
 
-# notice related viewsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+# notice related views
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_notice_view(request):
@@ -457,7 +459,7 @@ def admin_notice_view(request):
     return render(request, 'school/admin_notice.html', {'form': form})
 
 
-# for TEACHER  LOGIN    SECTIONNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+# for TEACHER  LOGIN    SECTION
 @login_required(login_url='teacherlogin')
 @user_passes_test(is_teacher)
 def teacher_dashboard_view(request):
@@ -535,7 +537,7 @@ def teacher_notice_view(request):
     return render(request, 'school/teacher_notice.html', {'form': form})
 
 
-# FOR STUDENT AFTER THEIR Loginnnnnnnnnnnnnnnnnnnnn
+# FOR STUDENT AFTER THEIR Login
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def student_dashboard_view(request):
@@ -568,7 +570,7 @@ def student_attendance_view(request):
     return render(request, 'school/student_view_attendance_ask_date.html', {'form': form})
 
 
-# for aboutus and contact ussssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+# for aboutus and contact us
 def aboutus_view(request):
     return render(request, 'school/aboutus.html')
 
@@ -588,6 +590,7 @@ def contactus_view(request):
 
 
 def logout_view(request):
+    logout(request)
     return render(request, 'school/logout.html')
 
 
