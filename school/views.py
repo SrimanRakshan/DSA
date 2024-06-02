@@ -585,3 +585,11 @@ def contactus_view(request):
                       fail_silently=False)
             return render(request, 'school/contactussuccess.html')
     return render(request, 'school/contactus.html', {'form': sub})
+
+
+def logout_view(request):
+    return render(request, 'school/logout.html')
+
+
+def index_view(request):
+    return render(request, 'school/index.html')

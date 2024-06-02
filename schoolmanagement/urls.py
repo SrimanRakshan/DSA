@@ -4,6 +4,7 @@ from school import views
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
+    path('index', views.index_view),
     path('admin/', admin.site.urls),
     path('', views.home_view, name=''),
 
@@ -19,7 +20,7 @@ urlpatterns = [
     path('teacherlogin', LoginView.as_view(template_name='school/teacherlogin.html')),
 
     path('afterlogin', views.afterlogin_view, name='afterlogin'),
-    path('logout', LogoutView.as_view(template_name='school/index.html'), name='logout'),
+    path('logout', views.logout_view, name='logout'),
 
     path('admin-dashboard', views.admin_dashboard_view, name='admin-dashboard'),
 
