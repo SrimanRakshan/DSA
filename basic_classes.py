@@ -12,21 +12,19 @@ class Database:
             self.assignments_table = []
             self.tests_table = []
             self.subjects_table = []
-            self.batches_table = []
+            self.batches_table = {}
 
     def add_student(self, student):
         self.students_table[student.username] = {"password": student.password, "student": student}
-        self.save()
 
     def add_teacher(self, teacher):
         self.teachers_table[teacher.username] = {"password": teacher.password, "teacher": teacher}
-        self.save()
 
     def add_subject(self, subject):
         self.subjects_table.append(subject)
 
     def add_batch(self, batch):
-        self.batches_table.append(batch)
+        self.batches_table[batch.name] = batch
 
     def add_assignment(self, assignment):
         self.assignments_table.append(assignment)

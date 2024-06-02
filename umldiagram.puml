@@ -2,7 +2,8 @@
 class Student {
     - username: str
     - password: str
-    - name: str
+    - firstname : str
+    - lastname : str
     - attendance: Dict[Subject : float]
     - subjects_enrolled: set[Subject]
     + login()
