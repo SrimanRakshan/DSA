@@ -5,7 +5,7 @@ class Student {
     - firstname : str
     - lastname : str
     - attendance: Dict[Subject : float]
-    - subjects_enrolled: set[Subject]
+    - assignments: Dict[Subject : list[Assignment]]
     + login()
     + view_marks()
     + view_attendance()
@@ -19,7 +19,7 @@ class Teacher {
     + firstname: str
     + lastname: str
     - assigned_classes: set[Batch]
-    + assign_assignment_to_class(batch: str, assignment: Assignment)
+    + assign_assignment_to_class(subject,batch: Batch, assignment: Assignment)
     + update_student_marks(student_username: int, test: Test, marks: list[int])
     + access_test_results(test: Test)
 }
@@ -57,8 +57,8 @@ class ClassroomInteraction {
 }
 
 class Database {
-    - students_table: table
-    - teachers_table: table
+    - students_table: Dict(password : str, student : Student)
+    - teachers_table: Dict(password : str, teacher : Teacher)
     - subjects_table: table
     - batches_table: table
     - assignments_table: table

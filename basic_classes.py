@@ -9,10 +9,8 @@ class Database:
         if not self.load():
             self.teachers_table = {}
             self.students_table = {}
-            self.assignments_table = []
-            self.tests_table = []
-            self.subjects_table = []
             self.batches_table = {}
+            self.subjects_table = []
 
     def add_student(self, student):
         self.students_table[student.username] = {"password": student.password, "student": student}
@@ -26,18 +24,19 @@ class Database:
     def add_batch(self, batch):
         self.batches_table[batch.name] = batch
 
-    def add_assignment(self, assignment):
-        self.assignments_table.append(assignment)
-
-    def add_test(self, test):
-        self.tests_table.append(test)
-
     # Update methods for each table would be implemented here
-    def update_student(self, student_username: str):
-        pass
+    def update_student(self, student_username: str, password=None, first_name=None, last_name=None, attendance=None,
+                       marks=None):
+        if password:
+            self.students_table[student_username]["password"] = password
+        if first_name:
+            self.students_table[student_username]["student"].first_name = first_name
+        if last_name:
+            self.students_table[student_username]["student"].last_name = last_name
 
-    def update_teacher(self, teacher_id: int):
-        pass
+    def update_teacher(self, teacher_username: str, **kwargs):
+        for attr, value in kwargs.items():
+            self.teachers_table[teacher_username]["teacher"].attr = value
 
     def update_batch(self, batch_id: int):
         pass
@@ -62,8 +61,7 @@ class Database:
 
 
 class Subject:
-    def __init__(self, id: int, name: str):
-        self.id = id
+    def __init__(self, name: str):
         self.name = name
 
 
@@ -90,8 +88,9 @@ class Assignment:
         self.subject = subject
         # self.submissions = []
 
-    def assign_to_batch(self, batch: Batch):
-        pass
+    def assign_to_batch(self, subject: Subject, batch: Batch):
+        for student in batch.students:
+            student.assigments[subject] = self
 
 
 class Test:
@@ -107,18 +106,17 @@ class Test:
 
 class Teacher:
     def __init__(self, username: str, password: str, first_name: str, last_name: str):
-        # self.id = id
         self.username = username
         self.password = password
         self.first_name = first_name
         self.last_name = last_name
         self.assigned_classes = []
 
-    def assign_assignment_to_class(self, batch_id, assignment):
-        # Logic to assign assignment to class
-        pass
+    @staticmethod
+    def assign_assignment_to_class(batch, subject, assignment):
+        assignment.assign_to_batch(subject, batch)
 
-    def update_student_marks(self, student_id, marks):
+    def update_student_marks(self, student_username, marks):
         # Logic to update student marks
         pass
 
@@ -128,19 +126,17 @@ class Teacher:
 
 
 class Student:
-    def __init__(self, id: int, username: str, password: str, name: str, subjects_enrolled: list[Subject]):
-        self.id = id
+    def __init__(self, username: str, password: str, first_name: str, last_name: str, batch: Batch,
+                 subjects_enrolled: list[Subject] = []):
         self.username = username
         self.password = password
-        self.name = name
-        self.subjects_enrolled = subjects_enrolled
+        self.first_name = first_name
+        self.last_name = last_name
+        self.batch = batch
         self.attendance = dict.fromkeys(subjects_enrolled, None)  # Mapping of subject to attendance percentage
+        self.assignments = dict.fromkeys(subjects_enrolled)
         # self.marks = dict.fromkeys(subjects_enrolled)  # List of marks for each subject (represents a mapping of
         # subject to marks)
-
-    def login(self):
-        # Login logic here
-        pass
 
     def view_marks(self):
         # Logic to view marks
