@@ -1,22 +1,26 @@
 from datetime import date
+import json
 
 
 # Design a Class Architecture based on /umldiagram.puml
 
 class Database:
     def __init__(self):
-        self.teachers_table = {}
-        self.students_table = {}
-        self.assignments_table = []
-        self.tests_table = []
-        self.subjects_table = []
-        self.batches_table = []
+        if not self.load():
+            self.teachers_table = {}
+            self.students_table = {}
+            self.assignments_table = []
+            self.tests_table = []
+            self.subjects_table = []
+            self.batches_table = []
 
     def add_student(self, student):
         self.students_table[student.username] = {"password": student.password, "student": student}
+        self.save()
 
     def add_teacher(self, teacher):
         self.teachers_table[teacher.username] = {"password": teacher.password, "teacher": teacher}
+        self.save()
 
     def add_subject(self, subject):
         self.subjects_table.append(subject)
@@ -39,6 +43,24 @@ class Database:
 
     def update_batch(self, batch_id: int):
         pass
+
+    def save(self):
+        # Save the database to a json file
+        with open("database.json", "w") as f:
+            json.dump(self.__dict__, f)
+
+    def load(self) -> bool:
+        # Load the database from a json file
+        try:
+            with open("database.json", "r") as f:
+                data = json.load(f)
+                self.__dict__.update(data)
+
+        except FileNotFoundError:
+            print("Database file not found")
+            return False
+        else:
+            return True
 
 
 class Subject:
@@ -86,11 +108,12 @@ class Test:
 
 
 class Teacher:
-    def __init__(self, id: int, username: str, password: str, name: str):
+    def __init__(self, username: str, password: str, first_name: str, last_name: str):
         # self.id = id
         self.username = username
         self.password = password
-        self.name = name
+        self.first_name = first_name
+        self.last_name = last_name
         self.assigned_classes = []
 
     def assign_assignment_to_class(self, batch_id, assignment):

@@ -1,6 +1,5 @@
 @startuml
 class Student {
-    - id: int
     - username: str
     - password: str
     - name: str
@@ -16,20 +15,19 @@ class Student {
 class Teacher {
     - username: str
     - password: str
-    - name: str
+    + firstname: str
+    + lastname: str
     - assigned_classes: set[Batch]
-    + assign_assignment_to_class(batch_id: int, assignment: Assignment)
-    + update_student_marks(student_id: int, test: Test, marks: list[int])
+    + assign_assignment_to_class(batch: str, assignment: Assignment)
+    + update_student_marks(student_username: int, test: Test, marks: list[int])
     + access_test_results(test: Test)
 }
 
 class Subject {
-    - id: int
     - name: str
 }
 
 class Batch {
-    - id: int
     - name: str
     - section: str
     - students: list[Student]
@@ -39,7 +37,6 @@ class Batch {
 }
 
 class Assignment {
-    - id: int
     - name: str
     - due_date: date
     - subject: Subject
@@ -47,15 +44,15 @@ class Assignment {
 }
 
 class Test {
-    - id: int
+    - name : str
     - subject: Subject
     - marks: dict[Student, int]
 }
 
 class ClassroomInteraction {
-    + update_student_marks(student_id: int, test: Test, marks: list[int])
-    + assign_assignment_to_student(student_id: int, assignment: Assignment)
-    + view_assignments(student_id: int)
+    + update_student_marks(student_username : str, test: Test, marks: list[int])
+    + assign_assignment_to_student(student_username: str, assignment: Assignment)
+    + view_assignments(student_username: str)
 }
 
 class Database {
@@ -71,9 +68,11 @@ class Database {
     + add_batch(batch: Batch)
     + add_assignment(assignment: Assignment)
     + add_test(test: Test)
-    + update_student(student_id: int, new_student_data)
-    + update_teacher(teacher_id: int, new_teacher_data)
-    + update_batch(batch_id: int, new_batch_data)
+    + update_student(student_username: int, new_student_data)
+    + update_teacher(teacher_username: int, new_teacher_data)
+    + update_batch(batch: str, new_batch_data)
+    - save()
+    - load()
 }
 
 Student "1" --> "0..*" Teacher : enrolled_in
