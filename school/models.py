@@ -21,7 +21,9 @@ class TeacherExtra(models.Model):
         return self.user.first_name + " " + self.user.last_name
 
 
-classes = [(i, i) for i in ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']]
+classes = [('one', 'one'), ('two', 'two'), ('three', 'three'),
+           ('four', 'four'), ('five', 'five'), ('six', 'six'), ('seven', 'seven'), ('eight', 'eight'), ('nine', 'nine'),
+           ('ten', 'ten')]
 
 
 class StudentExtra(models.Model):
@@ -29,7 +31,7 @@ class StudentExtra(models.Model):
     roll = models.CharField(max_length=10)
     mobile = models.CharField(max_length=40, null=True)
     fee = models.PositiveIntegerField(null=True)
-    cl = models.CharField(max_length=10, choices=classes, default=classes[0][0])
+    cl = models.CharField(max_length=10, choices=classes, default='one')
     status = models.BooleanField(default=False)
 
     @property
