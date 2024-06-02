@@ -34,6 +34,12 @@ class Database:
     def update_student(self, student_id: int):
         pass
 
+    def update_teacher(self, teacher_id: int):
+        pass
+
+    def update_batch(self, batch_id: int):
+        pass
+
 
 class Subject:
     def __init__(self, id: int, name: str):
@@ -47,7 +53,7 @@ class Batch:
         self.name = name
         self.section = section
         self.students = []  # List of students enrolled in the batch
-        self.subjects = []
+        self.subjects = []  # List of subjects taught in the batch
 
     def add_student(self, student):
         self.students.append(student)
@@ -68,6 +74,17 @@ class Assignment:
         pass
 
 
+class Test:
+    def __init__(self, id: int, name: str, subject: Subject, date: date):
+        self.id = id
+        self.name = name
+        self.subject = subject
+        self.date = date
+
+    def assign_to_batch(self, batch: Batch):
+        pass
+
+
 class Student:
     def __init__(self, id: int, username: str, password: str, name: str, subjects_enrolled: list[Subject]):
         self.id = id
@@ -75,7 +92,6 @@ class Student:
         self.password = password
         self.name = name
         self.subjects_enrolled = subjects_enrolled
-
         self.attendance = dict.fromkeys(subjects_enrolled, None)  # Mapping of subject to attendance percentage
         # self.marks = dict.fromkeys(subjects_enrolled)  # List of marks for each subject (represents a mapping of
         # subject to marks)
@@ -94,6 +110,10 @@ class Student:
 
     def view_attendance(self):
         # Logic to view attendance
+        pass
+
+    def access_test_results(self, test: Test):
+        # Logic to access test results
         pass
 
 
@@ -119,15 +139,4 @@ class Teacher:
 
     def update_student_marks(self, student_id, marks):
         # Logic to update student marks
-        pass
-
-
-class Test:
-    def __init__(self, id: int, name: str, subject: Subject, date: date):
-        self.id = id
-        self.name = name
-        self.subject = subject
-        self.date = date
-
-    def assign_to_batch(self, batch: Batch):
         pass
