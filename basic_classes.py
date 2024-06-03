@@ -2,7 +2,6 @@ from datetime import date
 import pickle
 
 
-# ClassroomInteraction is not implemented yet!
 # Design a Class Architecture based on /uml_diagram.puml
 
 class Database:
@@ -14,28 +13,32 @@ class Database:
     def __init__(self, save_file='database.bin'):
         self.save_file = save_file
         if not self.load():
-            self.__teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher]]
-            self.__students_table = {}  # Dict[username: Dict[password: str, student: Student]]
+            self.__teachers_table = {}  # Dict[username: Dict[password: str, teacher: Teacher, status : str]]
+            self.__students_table = {}  # Dict[username: Dict[password: str, student: Student, status : str]]
             self.__batches_table = {}  # Dict[batch_name: Batch]
 
             self.save()  # Save the database to a json file
 
-    def add_student(self, student):
+    def add_student(self, student, status=False):
         """
         Add a student to the database. Also add the student to the batch. (Assuming the batch is already present)
         :param student:
+        :param status: Status of Student (True: Approved, False: Waiting for approval)
         :return:
         """
-        self.__students_table[student.username] = {"password": student.getpassword(), "student": student}
+        self.__students_table[student.username] = {"password": student.getpassword(), "student": student,
+                                                   "status": status}
         self.__batches_table[student.batch.name].add_student(student)
 
-    def add_teacher(self, teacher):
+    def add_teacher(self, teacher, status=False):
         """
         Add a teacher to the database.
         :param teacher: Teacher object
+        :param status: Status of Teacher (True: Approved, False: Waiting for approval)
         :return:
         """
-        self.__teachers_table[teacher.username] = {"password": teacher.getpassword, "teacher": teacher}
+        self.__teachers_table[teacher.username] = {"password": teacher.getpassword, "teacher": teacher,
+                                                   "status": status}
 
     def add_batch(self, batch):
         """
@@ -69,13 +72,16 @@ class Database:
         """
         return self.__teachers_table[teacher_username]["teacher"]
 
-    def update_student(self, student_username: str, password=None, first_name=None, last_name=None):
+    def update_student(self, student_username: str, password=None, first_name=None, last_name=None, status=None,
+                       fee=None):
         """
         Update the student details in the database.
         :param student_username: Student username
         :param password: Password of the student (Optional)
         :param first_name: First name of the student (Optional)
         :param last_name: Last name of the student (Optional)
+        :param status: Status of Student (True: Approved, False: Waiting for approval)
+        :param fee: Fee of student
         :return:
         """
         if password:
@@ -84,14 +90,21 @@ class Database:
             self.__students_table[student_username]["student"].first_name = first_name
         if last_name:
             self.__students_table[student_username]["student"].last_name = last_name
+        if status:
+            self.__students_table[student_username]["status"] = status
+        if fee:
+            self.__students_table[student_username]["student"].fee = fee
 
-    def update_teacher(self, teacher_username: str, password=None, first_name=None, last_name=None):
+    def update_teacher(self, teacher_username: str, password=None, first_name=None, last_name=None, status=None,
+                       salary=None):
         """
         Update the teacher details in the database.
         :param teacher_username: Teacher username
         :param password: Password of the teacher (Optional)
         :param first_name: First name of the teacher (Optional)
         :param last_name: Last name of the teacher (Optional)
+        :param status: Status of Teacher (Optional)(True: Approved, False: Waiting for approval)
+        :param salary: Salary of Teacher (Optional)
         :return:
         """
         if password:
@@ -100,6 +113,10 @@ class Database:
             self.__teachers_table[teacher_username]["teacher"].first_name = first_name
         if last_name:
             self.__teachers_table[teacher_username]["teacher"].last_name = last_name
+        if salary:
+            self.__teachers_table[teacher_username]["teacher"].salary = salary
+        if status:
+            self.__teachers_table[teacher_username]["status"] = status
 
     def update_batch(self, batch_name: str, students=None, subjects=None):
         """
@@ -113,6 +130,27 @@ class Database:
             self.__batches_table[batch_name].students = students
         if subjects:
             self.__batches_table[batch_name].subjects = subjects
+
+    def get_student_count(self, status=None):
+        if status:
+            return sum([1 for i in self.__students_table if self.__students_table[i]["status"] == status])
+        else:
+            return len(self.__students_table)
+
+    def get_teacher_count(self, status=None):
+        if status:
+            return sum([1 for i in self.__teachers_table if self.__teachers_table[i]["status"] == status])
+        else:
+            return len(self.__teachers_table)
+
+    def remove_teacher(self, teacher_username: str):
+        self.__teachers_table.pop(teacher_username)
+
+    def remove_student(self, student_username: str):
+
+        student = self.__students_table.pop(student_username)
+        batch = self.__batches_table[student.batch.name]
+        batch.students.remove(student)
 
     def save(self):
         # Save the database to a json file
@@ -208,7 +246,8 @@ class Test:
 
 
 class Student:
-    def __init__(self, username: str, password: str, first_name: str, last_name: str, batch: Batch,
+    def __init__(self, username: str, password: str, first_name: str, last_name: str, batch: Batch, fee: int,
+                 contact: int,
                  attendance: dict = None,
                  subjects_enrolled: list[Subject] = None):
         """
@@ -216,7 +255,9 @@ class Student:
         :param password: Password of the student
         :param first_name: First name of the student
         :param last_name: Last name of the student
+        :param fee: Fees of student
         :param batch: Batch of the student
+        :param contact : Phone Number of student
         :param attendance: (Optional) Dictionary of attendance for each subject, If not provided, initializes to None
         :param subjects_enrolled: (Optional) List of subjects enrolled, If not provided, inherits from the batch
         """
@@ -224,6 +265,8 @@ class Student:
         self.__password = password
         self.first_name = first_name
         self.last_name = last_name
+        self.contact = contact
+        self.fee = fee
         self.batch = batch
 
         # subjects_enrolled = List[Subject]
@@ -273,11 +316,12 @@ class Teacher:
     This teacher class is a utility class (has only static methods).
     """
 
-    def __init__(self, username: str, password: str, first_name: str, last_name: str):
+    def __init__(self, username: str, password: str, first_name: str, last_name: str, salary: int):
         self.username = username
         self.password = password
         self.first_name = first_name
         self.last_name = last_name
+        self.salary = salary
 
     def getpassword(self):
         """A Bad Practice to expose the password. Use this method only for time being."""
@@ -305,16 +349,16 @@ class Teacher:
         test.assign_to_batch(batch)
 
     @staticmethod
-    def update_student_attendance(student: Student, subject: Subject, date: date, present: bool):
+    def update_student_attendance(student: Student, subject: Subject, attendance_date: date, present: bool):
         """
         Update the attendance of a student for a particular subject.
         :param student: Student whose attendance is updated
         :param subject: Subject for which the attendance is updated
-        :param date: Date of the attendance
+        :param attendance_date: Date of the attendance
         :param present: Boolean value indicating whether the student is present or not
         :return:
         """
-        student.view_attendance()[subject][date] = present
+        student.view_attendance()[subject][attendance_date] = present
 
     @staticmethod
     def update_student_marks(student: Student, test: Test):

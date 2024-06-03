@@ -5,10 +5,11 @@ class Student {
     + firstname : str
     + lastname : str
     + batch : Batch
+    + fee : int
     + subjects_enrolled : List[Subject]
-    # marks: Dict[Subject : Dict[Test : float]]
-    # attendance: Dict[Subject : float]
-    # assignments: Dict[Subject : list[Assignment]]
+    + marks: Dict[Subject : Dict[Test : float]]
+    + attendance: Dict[Subject : float]
+    + assignments: Dict[Subject : list[Assignment]]
     + getpassword()
     + view_marks()
     + view_attendance()
@@ -23,6 +24,7 @@ class Teacher {
     - password: str
     + firstname: str
     + lastname: str
+    + salary : int
     + assign_assignment_to_class(batch: Batch, subject: Subject, assignment: Assignment)
     + update_student_marks(student: Student, test: Test)
     + access_test_results(batch: Batch, test: Test)
@@ -54,18 +56,12 @@ class Test {
     - marks: dict[Student, int]
 }
 
-class ClassroomInteraction {
-    + update_student_marks(student_username : str, test: Test, marks: list[int])
-    + assign_assignment_to_student(student_username: str, assignment: Assignment)
-    + view_assignments(student_username: str)
-}
-
 class Database {
     - students_table: Dict[username: Dict[password: str, teacher: Teacher]]
     - teachers_table: Dict[username: Dict[password: str, student: Student]]
     - batches_table: Dict[batch_name: Batch]
-    + add_student(student: Student)
-    + add_teacher(teacher: Teacher)
+    + add_student(student: Student, status : bool)
+    + add_teacher(teacher: Teacher, status : bool)
     + add_batch(batch: Batch)
     + get_student(student_username: str)
     + get_teacher(teacher_username: str)
@@ -78,17 +74,16 @@ class Database {
     + reset()
 }
 
-Student "1" --> "0..*" Teacher : enrolled_in
-Student "1" --> "1" Database : uses
-Teacher "1" --> "1" Database : uses
-Student "1" --> "*" Subject : enrolled_in
-Batch "*" --> "1" Teacher : taught_by
-Batch "*" --> "*" Student : has_students
-Batch "*" --> "*" Subject : subjects
-Assignment "1" --> "1" Subject : belongs_to
-Assignment "1" --> "1" Batch : assigned_to
-Test "1" --> "1" Subject : linked_via
-Test "*" --> "*" Student : marks_of
-ClassroomInteraction "*" --> "*" Teacher : interacts_with <<updates_credentials>>
-ClassroomInteraction "*" --> "*" Student : interacts_with
+'Student "1" --> "0..*" Teacher : enrolled_in
+Student "1" --- "1" Database : uses
+Teacher "1" --- "1" Database : uses
+Teacher "1...*" --- "1...*" Student : manages
+Student "1" --- "*" Subject : enrolled_in
+'Batch "*" --> "1" Teacher : taught_by
+Batch "*" --- "*" Student : has_students
+Batch "*" --- "*" Subject : subjects
+Assignment "0...*" --- "1" Subject : belongs_to
+Assignment "0...*" --- "1" Batch : assigned_to
+Test "0...*" --- "1" Subject : linked_via
+Test "0...*" --- "0...*" Student : marks_of
 @enduml

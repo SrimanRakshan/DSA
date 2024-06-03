@@ -55,7 +55,7 @@ def admin_signup_view(request):
         form = forms.AdminSigupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
 
             my_admin_group = Group.objects.get_or_create(name='ADMIN')
@@ -74,7 +74,7 @@ def student_signup_view(request):
         form2 = forms.StudentExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
             f2.user = user
@@ -96,7 +96,7 @@ def teacher_signup_view(request):
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
             f2.user = user
@@ -196,7 +196,7 @@ def admin_add_teacher_view(request):
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
 
             f2 = form2.save(commit=False)
@@ -270,7 +270,7 @@ def update_teacher_view(request, pk):
         print(form1)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
             f2._submitted = True
@@ -305,7 +305,7 @@ def admin_add_student_view(request):
         if form1.is_valid() and form2.is_valid():
             print("form is valid")
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
 
             f2 = form2.save(commit=False)
@@ -362,7 +362,7 @@ def update_student_view(request, pk):
         print(form1)
         if form1.is_valid() and form2.is_valid():
             user = form1.save()
-            user.set_password(user.__password)
+            user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
             f2._submitted = True
@@ -436,7 +436,7 @@ def admin_view_attendance_view(request, cl):
             attendancedata = models.Attendance.objects.all().filter(date=date, cl=cl)
             studentdata = models.StudentExtra.objects.all().filter(cl=cl)
             mylist = zip(attendancedata, studentdata)
-            return render(request, 'school/admin_view_attendance_page.html', {'cl': cl, 'mylist': mylist, 'date': date})
+            return render(request, 'school/admin_view_attendance_page.html', {'cl': cl, 'mylist': mylist, 'attendance_date': date})
         else:
             print('form invalid')
     return render(request, 'school/admin_view_attendance_ask_date.html', {'cl': cl, 'form': form})
@@ -480,7 +480,7 @@ def teacher_dashboard_view(request):
     mydict = {
         'salary': teacherdata[0].salary,
         'mobile': teacherdata[0].mobile,
-        'date': teacherdata[0].joindate,
+        'attendance_date': teacherdata[0].joindate,
         'notice': notice
     }
     return render(request, 'school/teacher_dashboard.html', context=mydict)
@@ -527,7 +527,7 @@ def teacher_view_attendance_view(request, cl):
             studentdata = models.StudentExtra.objects.all().filter(cl=cl)
             mylist = zip(attendancedata, studentdata)
             return render(request, 'school/teacher_view_attendance_page.html',
-                          {'cl': cl, 'mylist': mylist, 'date': date})
+                          {'cl': cl, 'mylist': mylist, 'attendance_date': date})
         else:
             print('form invalid')
     return render(request, 'school/teacher_view_attendance_ask_date.html', {'cl': cl, 'form': form})
@@ -576,7 +576,7 @@ def student_attendance_view(request):
             attendancedata = models.Attendance.objects.all().filter(date=date, cl=studentdata[0].cl,
                                                                     roll=studentdata[0].roll)
             mylist = zip(attendancedata, studentdata)
-            return render(request, 'school/student_view_attendance_page.html', {'mylist': mylist, 'date': date})
+            return render(request, 'school/student_view_attendance_page.html', {'mylist': mylist, 'attendance_date': date})
         else:
             print('form invalid')
     return render(request, 'school/student_view_attendance_ask_date.html', {'form': form})
