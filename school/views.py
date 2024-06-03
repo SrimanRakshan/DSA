@@ -201,7 +201,7 @@ def admin_add_teacher_view(request):
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2._submitted = True
+            f2.status = True
             f2.save()
 
             my_teacher_group = Group.objects.get_or_create(name='TEACHER')
@@ -229,7 +229,7 @@ def admin_approve_teacher_view(request):
 @user_passes_test(is_admin)
 def approve_teacher_view(request, pk):
     teacher = models.TeacherExtra.objects.get(id=pk)
-    teacher._submitted = True
+    teacher.status = True
     teacher.save()
     return redirect(reverse('admin-approve-teacher'))
 
@@ -273,7 +273,7 @@ def update_teacher_view(request, pk):
             user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
-            f2._submitted = True
+            f2.status = True
             f2.save()
             return redirect('admin-view-teacher')
     return render(request, 'school/admin_update_teacher.html', context=mydict)
@@ -310,7 +310,7 @@ def admin_add_student_view(request):
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2._submitted = True
+            f2.status = True
             f2.save()
 
             my_student_group = Group.objects.get_or_create(name='STUDENT')
@@ -365,7 +365,7 @@ def update_student_view(request, pk):
             user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
-            f2._submitted = True
+            f2.status = True
             f2.save()
             return redirect('admin-view-student')
     return render(request, 'school/admin_update_student.html', context=mydict)
@@ -382,7 +382,7 @@ def admin_approve_student_view(request):
 @user_passes_test(is_admin)
 def approve_student_view(request, pk):
     students = models.StudentExtra.objects.get(id=pk)
-    students._submitted = True
+    students.status = True
     students.save()
     return redirect(reverse('admin-approve-student'))
 
