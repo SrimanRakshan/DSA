@@ -201,7 +201,7 @@ def admin_add_teacher_view(request):
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2._submitted = True
+            f2.status = True
             f2.save()
 
             my_teacher_group = Group.objects.get_or_create(name='TEACHER')
@@ -229,7 +229,7 @@ def admin_approve_teacher_view(request):
 @user_passes_test(is_admin)
 def approve_teacher_view(request, pk):
     teacher = models.TeacherExtra.objects.get(id=pk)
-    teacher._submitted = True
+    teacher.status = True
     teacher.save()
     return redirect(reverse('admin-approve-teacher'))
 
@@ -273,7 +273,7 @@ def update_teacher_view(request, pk):
             user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
-            f2._submitted = True
+            f2.status = True
             f2.save()
             return redirect('admin-view-teacher')
     return render(request, 'school/admin_update_teacher.html', context=mydict)
@@ -310,7 +310,7 @@ def admin_add_student_view(request):
 
             f2 = form2.save(commit=False)
             f2.user = user
-            f2._submitted = True
+            f2.status = True
             f2.save()
 
             my_student_group = Group.objects.get_or_create(name='STUDENT')
@@ -365,7 +365,7 @@ def update_student_view(request, pk):
             user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
-            f2._submitted = True
+            f2.status = True
             f2.save()
             return redirect('admin-view-student')
     return render(request, 'school/admin_update_student.html', context=mydict)
@@ -382,7 +382,7 @@ def admin_approve_student_view(request):
 @user_passes_test(is_admin)
 def approve_student_view(request, pk):
     students = models.StudentExtra.objects.get(id=pk)
-    students._submitted = True
+    students.status = True
     students.save()
     return redirect(reverse('admin-approve-student'))
 
@@ -436,7 +436,7 @@ def admin_view_attendance_view(request, cl):
             attendancedata = models.Attendance.objects.all().filter(date=date, cl=cl)
             studentdata = models.StudentExtra.objects.all().filter(cl=cl)
             mylist = zip(attendancedata, studentdata)
-            return render(request, 'school/admin_view_attendance_page.html', {'cl': cl, 'mylist': mylist, 'attendance_date': date})
+            return render(request, 'school/admin_view_attendance_page.html', {'cl': cl, 'mylist': mylist, 'date': date})
         else:
             print('form invalid')
     return render(request, 'school/admin_view_attendance_ask_date.html', {'cl': cl, 'form': form})
@@ -480,7 +480,7 @@ def teacher_dashboard_view(request):
     mydict = {
         'salary': teacherdata[0].salary,
         'mobile': teacherdata[0].mobile,
-        'attendance_date': teacherdata[0].joindate,
+        'date': teacherdata[0].joindate,
         'notice': notice
     }
     return render(request, 'school/teacher_dashboard.html', context=mydict)
@@ -527,7 +527,7 @@ def teacher_view_attendance_view(request, cl):
             studentdata = models.StudentExtra.objects.all().filter(cl=cl)
             mylist = zip(attendancedata, studentdata)
             return render(request, 'school/teacher_view_attendance_page.html',
-                          {'cl': cl, 'mylist': mylist, 'attendance_date': date})
+                          {'cl': cl, 'mylist': mylist, 'date': date})
         else:
             print('form invalid')
     return render(request, 'school/teacher_view_attendance_ask_date.html', {'cl': cl, 'form': form})
@@ -576,13 +576,13 @@ def student_attendance_view(request):
             attendancedata = models.Attendance.objects.all().filter(date=date, cl=studentdata[0].cl,
                                                                     roll=studentdata[0].roll)
             mylist = zip(attendancedata, studentdata)
-            return render(request, 'school/student_view_attendance_page.html', {'mylist': mylist, 'attendance_date': date})
+            return render(request, 'school/student_view_attendance_page.html', {'mylist': mylist, 'date': date})
         else:
             print('form invalid')
     return render(request, 'school/student_view_attendance_ask_date.html', {'form': form})
 
 
-# for aboutus and contact us
+# for about us and contact us
 def aboutus_view(request):
     return render(request, 'school/aboutus.html')
 
