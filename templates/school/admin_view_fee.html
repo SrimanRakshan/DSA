@@ -42,9 +42,9 @@
         </thead>
         {%for f in feedetails %}
         <tr>
-          <td>{{f.get_name}}</td>
+          <td>{{f.first_name}} {{f.last_name}}</td>
           <td>{{f.roll}}</td>
-          <td>{{f.mobile}}</td>
+          <td>{{f.contact}}</td>
           <td>{{f.fee}}</td>
         </tr>
         {%endfor%}

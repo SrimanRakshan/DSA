@@ -51,12 +51,12 @@
         </thead>
         {% for s in students %}
         <tr>
-          <td> {{s.get_name}}</td>
-          <td>{{s.cl}}</td>
+          <td> {{s.first_name}} {{s.last_name}}</td>
+          <td>{{s.batch.name}}</td>
           <td>{{s.fee}}</td>
-          <td>{{s.mobile}}</td>
-          <td><a class="btn btn-success btn-xs" href="{% url 'approve-student' s.id  %}"><span class="glyphicon glyphicon-ok"></span></a>
-         <a class="btn btn-danger btn-xs" href="{% url 'delete-student' s.id  %}"><span class="glyphicon glyphicon-trash"></span></a></td>
+          <td>{{s.contact}}</td>
+          <td><a class="btn btn-success btn-xs" href="{% url 'approve-student' s.username  %}"><span class="glyphicon glyphicon-ok"></span></a>
+         <a class="btn btn-danger btn-xs" href="{% url 'delete-student' s.username  %}"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
 
         {% endfor %}

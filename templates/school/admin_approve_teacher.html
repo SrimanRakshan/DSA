@@ -50,12 +50,12 @@
         </thead>
         {% for t in teachers %}
         <tr>
-          <td> {{t.get_name}}</td>
-          <td>{{t.mobile}}</td>
-          <td>{{t.salary}}</td>
-          <td>{{t.joindate}}</td>
-          <td><a class="btn btn-success btn-xs" href="{% url 'approve-teacher' t.id  %}"><span class="glyphicon glyphicon-ok"></span></a>
-          <a class="btn btn-danger btn-xs" href="{% url 'delete-teacher' t.id  %}"><span class="glyphicon glyphicon-trash"></span></a></td>
+          <td>{{t.first_name}} {{t.last_name}}</td>
+          <td>{{t.contact}}</td>
+          <td>${{t.salary}}</td>
+          <td>{{t.join_date}}</td>
+          <td><a class="btn btn-success btn-xs" href="{% url 'approve-teacher' t.username  %}"><span class="glyphicon glyphicon-ok"></span></a>
+          <a class="btn btn-danger btn-xs" href="{% url 'delete-teacher' t.username  %}"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
 
         {% endfor %}

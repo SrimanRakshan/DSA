@@ -9,6 +9,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 from django.core.mail import send_mail
 
+import basic_classes as fe
+
+db = fe.Database()
+for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']:
+    try:
+        db.add_batch(fe.Batch(i))
+    except ValueError:
+        pass
+
 
 def home_view(request):
     if request.user.is_authenticated:
@@ -73,6 +82,18 @@ def student_signup_view(request):
         form1 = forms.StudentUserForm(request.POST)
         form2 = forms.StudentExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
+            student = fe.Student(form1.cleaned_data['username'],
+                                 form1.cleaned_data['password'],
+                                 form1.cleaned_data['first_name'],
+                                 form1.cleaned_data['last_name'],
+                                 db.get_batch(form2.cleaned_data['cl']),
+                                 form2.cleaned_data['fee'],
+                                 form2.cleaned_data['roll'],
+                                 form2.cleaned_data['mobile'])
+            db.add_student(student)
+            db.save()
+
+            # Django Implementation
             user = form1.save()
             user.set_password(user.password)
             user.save()
@@ -95,6 +116,16 @@ def teacher_signup_view(request):
         form1 = forms.TeacherUserForm(request.POST)
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
+            teacher = fe.Teacher(username=form1.cleaned_data['username'],
+                                 password=form1.cleaned_data['password'],
+                                 first_name=form1.cleaned_data['first_name'],
+                                 last_name=form1.cleaned_data['last_name'],
+                                 contact=form2.cleaned_data['mobile'],
+                                 salary=form2.cleaned_data['salary']
+                                 )
+            db.add_teacher(teacher)
+            db.save()
+
             user = form1.save()
             user.set_password(user.password)
             user.save()
@@ -109,7 +140,7 @@ def teacher_signup_view(request):
     return render(request, 'school/teachersignup.html', context=mydict)
 
 
-# for checking user is techer , student or admin
+# for checking user is teacher , student or admin
 def is_admin(user):
     return user.groups.filter(name='ADMIN').exists()
 
@@ -143,17 +174,17 @@ def afterlogin_view(request):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_dashboard_view(request):
-    teachercount = models.TeacherExtra.objects.all().filter(status=True).count()
-    pendingteachercount = models.TeacherExtra.objects.all().filter(status=False).count()
+    teachercount = db.get_teacher_count(status=True)
+    pendingteachercount = db.get_teacher_count(status=False)
 
-    studentcount = models.StudentExtra.objects.all().filter(status=True).count()
-    pendingstudentcount = models.StudentExtra.objects.all().filter(status=False).count()
+    studentcount = db.get_student_count(status=True)
+    pendingstudentcount = db.get_student_count(status=False)
 
-    teachersalary = models.TeacherExtra.objects.filter(status=True).aggregate(Sum('salary'))
-    pendingteachersalary = models.TeacherExtra.objects.filter(status=False).aggregate(Sum('salary'))
+    teachersalary = db.get_total_salary()
+    pendingteachersalary = db.get_total_salary(status=False)
 
-    studentfee = models.StudentExtra.objects.filter(status=True).aggregate(Sum('fee', default=0))
-    pendingstudentfee = models.StudentExtra.objects.filter(status=False).aggregate(Sum('fee'))
+    studentfee = db.get_total_fees()
+    pendingstudentfee = db.get_total_fees(status=False)
 
     notice = models.Notice.objects.all()
 
@@ -165,11 +196,11 @@ def admin_dashboard_view(request):
         'studentcount': studentcount,
         'pendingstudentcount': pendingstudentcount,
 
-        'teachersalary': teachersalary['salary__sum'],
-        'pendingteachersalary': pendingteachersalary['salary__sum'],
+        'teachersalary': teachersalary,
+        'pendingteachersalary': pendingteachersalary,
 
-        'studentfee': studentfee['fee__sum'],
-        'pendingstudentfee': pendingstudentfee['fee__sum'],
+        'studentfee': studentfee,
+        'pendingstudentfee': pendingstudentfee,
 
         'notice': notice
 
@@ -195,6 +226,16 @@ def admin_add_teacher_view(request):
         form1 = forms.TeacherUserForm(request.POST)
         form2 = forms.TeacherExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
+            teacher = fe.Teacher(username=form1.cleaned_data['username'],
+                                 password=form1.cleaned_data['password'],
+                                 first_name=form1.cleaned_data['first_name'],
+                                 last_name=form1.cleaned_data['last_name'],
+                                 contact=form2.cleaned_data['mobile'],
+                                 salary=form2.cleaned_data['salary']
+                                 )
+            db.add_teacher(teacher, status=True)
+            db.save()
+
             user = form1.save()
             user.set_password(user.password)
             user.save()
@@ -214,52 +255,62 @@ def admin_add_teacher_view(request):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_view_teacher_view(request):
-    teachers = models.TeacherExtra.objects.all().filter(status=True)
+    teachers = db.get_all_teachers(status=True)
     return render(request, 'school/admin_view_teacher.html', {'teachers': teachers})
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_approve_teacher_view(request):
-    teachers = models.TeacherExtra.objects.all().filter(status=False)
+    teachers = db.get_all_teachers(status=False)
     return render(request, 'school/admin_approve_teacher.html', {'teachers': teachers})
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def approve_teacher_view(request, pk):
-    teacher = models.TeacherExtra.objects.get(id=pk)
+    user = models.User.objects.get(username=pk)
+    teacher = models.TeacherExtra.objects.get(user=user)
     teacher.status = True
     teacher.save()
+
+    db.update_teacher(pk, status=True)
+    db.save()
     return redirect(reverse('admin-approve-teacher'))
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def delete_teacher_view(request, pk):
-    teacher = models.TeacherExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=teacher.user_id)
+    user = models.User.objects.get(username=pk)
+    teacher = models.TeacherExtra.objects.get(user=user)
     user.delete()
     teacher.delete()
+
+    db.remove_teacher(pk)
+    db.save()
     return redirect('admin-approve-teacher')
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def delete_teacher_from_school_view(request, pk):
-    teacher = models.TeacherExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=teacher.user_id)
+    user = models.User.objects.get(username=pk)
+    teacher = models.TeacherExtra.objects.get(user=user)
     user.delete()
     teacher.delete()
+
+    db.remove_teacher(pk)
+    db.save()
     return redirect('admin-view-teacher')
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def update_teacher_view(request, pk):
-    teacher = models.TeacherExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=teacher.user_id)
-
+    teacher_username = db.get_teacher(pk).username
+    user = models.User.objects.get(username=teacher_username)
+    teacher = models.TeacherExtra.objects.get(user=user)
     form1 = forms.TeacherUserForm(instance=user)
     form2 = forms.TeacherExtraForm(instance=teacher)
     mydict = {'form1': form1, 'form2': form2}
@@ -269,8 +320,17 @@ def update_teacher_view(request, pk):
         form2 = forms.TeacherExtraForm(request.POST, instance=teacher)
         print(form1)
         if form1.is_valid() and form2.is_valid():
-            user = form1.save()
-            user.set_password(user.password)
+            db.update_teacher(teacher_username=teacher_username,
+                              # form1.cleaned_data['password'],
+                              first_name=form1.cleaned_data['first_name'],
+                              last_name=form1.cleaned_data['last_name'],
+                              contact=form2.cleaned_data['mobile'],
+                              salary=form2.cleaned_data['salary']
+                              )
+            db.save()
+
+            user = form1.save()  # Changing UserName doesn't work as of now
+            # user.set_password(user.password) # Changing Password doesn't work as of now
             user.save()
             f2 = form2.save(commit=False)
             f2.status = True
@@ -282,7 +342,7 @@ def update_teacher_view(request, pk):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_view_teacher_salary_view(request):
-    teachers = models.TeacherExtra.objects.all()
+    teachers = db.get_all_teachers(status=True)
     return render(request, 'school/admin_view_teacher_salary.html', {'teachers': teachers})
 
 
@@ -303,6 +363,18 @@ def admin_add_student_view(request):
         form1 = forms.StudentUserForm(request.POST)
         form2 = forms.StudentExtraForm(request.POST)
         if form1.is_valid() and form2.is_valid():
+            student = fe.Student(username=form1.cleaned_data['username'],
+                                 password=form1.cleaned_data['password'],
+                                 first_name=form1.cleaned_data['first_name'],
+                                 last_name=form1.cleaned_data['last_name'],
+                                 contact=form2.cleaned_data['mobile'],
+                                 batch=db.get_batch(form2.cleaned_data['cl']),
+                                 fee=form2.cleaned_data['fee'],
+                                 roll=form2.cleaned_data['roll']
+                                 )
+            db.add_student(student, status=True)
+            db.save()
+
             print("form is valid")
             user = form1.save()
             user.set_password(user.password)
@@ -324,35 +396,43 @@ def admin_add_student_view(request):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_view_student_view(request):
-    students = models.StudentExtra.objects.all().filter(status=True)
+    # students = models.StudentExtra.objects.all().filter(status=True)
+    students = db.get_all_students(status=True)
     return render(request, 'school/admin_view_student.html', {'students': students})
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def delete_student_from_school_view(request, pk):
-    student = models.StudentExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=student.user_id)
+    user = models.User.objects.get(username=pk)
+    student = models.StudentExtra.objects.get(user=user)
     user.delete()
     student.delete()
+
+    db.remove_student(pk)
+    db.save()
     return redirect('admin-view-student')
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def delete_student_view(request, pk):
-    student = models.StudentExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=student.user_id)
+    user = models.User.objects.get(username=pk)
+    student = models.StudentExtra.objects.get(user=user)
     user.delete()
     student.delete()
+
+    db.remove_student(pk)
+    db.save()
     return redirect('admin-approve-student')
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def update_student_view(request, pk):
-    student = models.StudentExtra.objects.get(id=pk)
-    user = models.User.objects.get(id=student.user_id)
+    student_username = db.get_student(pk).username
+    user = models.User.objects.get(username=student_username)
+    student = models.StudentExtra.objects.get(user=user)
     form1 = forms.StudentUserForm(instance=user)
     form2 = forms.StudentExtraForm(instance=student)
     mydict = {'form1': form1, 'form2': form2}
@@ -361,8 +441,19 @@ def update_student_view(request, pk):
         form2 = forms.StudentExtraForm(request.POST, instance=student)
         print(form1)
         if form1.is_valid() and form2.is_valid():
+            db.update_student(student_username=student_username,
+                              # form1.cleaned_data['password'],
+                              first_name=form1.cleaned_data['first_name'],
+                              last_name=form1.cleaned_data['last_name'],
+                              contact=form2.cleaned_data['mobile'],
+                              fee=form2.cleaned_data['fee'],
+                              batch=db.get_batch(form2.cleaned_data['cl']),
+                              roll=form2.cleaned_data['roll']
+                              )
+            db.save()
+
             user = form1.save()
-            user.set_password(user.password)
+            # user.set_password(user.password)
             user.save()
             f2 = form2.save(commit=False)
             f2.status = True
@@ -374,23 +465,27 @@ def update_student_view(request, pk):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_approve_student_view(request):
-    students = models.StudentExtra.objects.all().filter(status=False)
+    students = db.get_all_students(status=False)
     return render(request, 'school/admin_approve_student.html', {'students': students})
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def approve_student_view(request, pk):
-    students = models.StudentExtra.objects.get(id=pk)
+    user = models.User.objects.get(username=pk)
+    students = models.StudentExtra.objects.get(user=user)
     students.status = True
     students.save()
+
+    db.update_student(pk, status=True)
+    db.save()
     return redirect(reverse('admin-approve-student'))
 
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_view_student_fee_view(request):
-    students = models.StudentExtra.objects.all()
+    students = db.get_all_students(status=True)
     return render(request, 'school/admin_view_student_fee.html', {'students': students})
 
 
@@ -452,7 +547,8 @@ def admin_fee_view(request):
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_view_fee_view(request, cl):
-    feedetails = models.StudentExtra.objects.all().filter(cl=cl)
+    batch = db.get_batch(cl)
+    feedetails = batch.students
     return render(request, 'school/admin_view_fee.html', {'feedetails': feedetails, 'cl': cl})
 
 
@@ -475,12 +571,13 @@ def admin_notice_view(request):
 @login_required(login_url='teacherlogin')
 @user_passes_test(is_teacher)
 def teacher_dashboard_view(request):
-    teacherdata = models.TeacherExtra.objects.all().filter(status=True, user_id=request.user.id)
+    # teacherdata = models.TeacherExtra.objects.all().filter(status=True, user_id=request.user.id)
+    teacher = db.get_teacher(request.user.username)
     notice = models.Notice.objects.all()
     mydict = {
-        'salary': teacherdata[0].salary,
-        'mobile': teacherdata[0].mobile,
-        'date': teacherdata[0].joindate,
+        'salary': teacher.salary,
+        'mobile': teacher.contact,
+        'date': teacher.join_date,
         'notice': notice
     }
     return render(request, 'school/teacher_dashboard.html', context=mydict)
@@ -553,12 +650,13 @@ def teacher_notice_view(request):
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def student_dashboard_view(request):
-    studentdata = models.StudentExtra.objects.all().filter(status=True, user_id=request.user.id)
+    # studentdata = models.StudentExtra.objects.all().filter(status=True, user_id=request.user.id)
+    student = db.get_student(request.user.username)
     notice = models.Notice.objects.all()
     mydict = {
-        'roll': studentdata[0].roll,
-        'mobile': studentdata[0].mobile,
-        'fee': studentdata[0].fee,
+        'roll': student.roll,
+        'mobile': student.contact,
+        'fee': student.fee,
         'notice': notice
     }
     return render(request, 'school/student_dashboard.html', context=mydict)
